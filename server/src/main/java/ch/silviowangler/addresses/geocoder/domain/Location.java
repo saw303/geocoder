@@ -4,6 +4,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import java.time.Instant;
 
 /**
  * @author Silvio Wangler
@@ -27,6 +28,8 @@ public class Location extends BaseEntity {
 
     private Double longitude;
     private Double latitude;
+
+    private Instant processed;
 
     public String getStreet() {
         return street;
@@ -83,4 +86,12 @@ public class Location extends BaseEntity {
     public void setLatitude(Double latitude) {
         this.latitude = latitude;
     }
+
+	public Instant getProcessed() {
+		return processed;
+	}
+
+	public void setProcessed(Instant processed) {
+		this.processed = processed;
+	}
 }

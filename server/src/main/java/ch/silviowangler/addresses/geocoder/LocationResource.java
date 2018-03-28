@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
@@ -43,7 +44,7 @@ public class LocationResource {
 	@GetMapping(value = "/next", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 	@ResponseBody
 	public LocationVO next() {
-		final Optional<Location> location = locationRepository.findFirstByLongitudeIsNullAndLatitudeIsNull();
+		final Optional<Location> location = locationRepository.findFirstByLongitudeIsNullAndLatitudeIsNullAndProcessedIsNull();
 
 		if (!location.isPresent()) {
 			throw new NoDataToProcessException();
@@ -61,22 +62,24 @@ public class LocationResource {
 		location.ifPresent(l -> {
 			Optional<GeocodingResult> result = Arrays.stream(results).filter(a -> Arrays.asList(a.types).contains(AddressType.STREET_ADDRESS)).findAny();
 
+			if (l.getProcessed() == null) {
+				l.setProcessed(Instant.now());
+			}
+
 			if (result.isPresent()) {
 				GeocodingResult geocodingResult = result.get();
 
 				LatLng googleLocation = geocodingResult.geometry.location;
 				l.setLongitude(googleLocation.lng);
 				l.setLatitude(googleLocation.lat);
-				locationRepository.save(l);
-
 			} else if (results.length > 0) {
 				LatLng googleLocation = results[0].geometry.location;
 				l.setLongitude(googleLocation.lng);
 				l.setLatitude(googleLocation.lat);
-				locationRepository.save(l);
 			} else {
 				log.warn("Could not save {} with {}", uuid, results);
 			}
+			locationRepository.save(l);
 		});
 	}
 
