@@ -1,0 +1,25 @@
+version: "3.5"
+services:
+
+  geoserver:
+    image: hub.schaltzentrale.ch/geogeo
+    container_name: geo.server
+    depends_on:
+      - geodb
+    ports:
+      - "9090:8080"
+    volumes:
+      - ${GEO_HOME}/geo:/var/log/geo
+
+  geodb:
+    image: yobasystems/alpine-mariadb
+    container_name: geo.db
+    environment:
+      MYSQL_ROOT_PASSWORD: geo
+      MYSQL_DATABASE: geo
+      MYSQL_USER: geo
+      MYSQL_PASSWORD: geo
+    ports:
+        - "127.0.0.1:3306:3306"
+    volumes:
+      - ${GEO_HOME}/mariadb:/var/lib/mysql

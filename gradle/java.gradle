@@ -1,0 +1,30 @@
+apply plugin: 'java'
+
+sourceCompatibility = JavaVersion.VERSION_1_9
+
+dependencies {
+    testCompile 'org.spockframework:spock-core'
+}
+
+jar {
+    manifest {
+        attributes(
+                'Built-By': "Gradle ${gradle.gradleVersion}",
+                'Implementation-Title': "GESUS-${project.name}",
+                'Implementation-Version': project.version,
+                'Implementation-Vendor': 'Adcubum AG',
+                'Specification-Title': "GESUS-${project.name}",
+                'Specification-Version': project.version,
+                'Specification-Vendor': 'Adcubum AG'
+        )
+    }
+    baseName = "gesus-${baseName.replaceAll('/', '-')}"
+}
+
+test {
+    reports {
+        junitXml.enabled = false
+        html.enabled = true
+    }
+    failFast = true
+}

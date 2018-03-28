@@ -1,0 +1,15 @@
+root = true
+
+[*.{java,groovy,sql}]
+indent_style = tab
+indent_size = 4
+continuation_indent_size = 8
+charset = utf-8
+
+[*.properties]
+charset = latin1
+
+[*.xml]
+indent_style = tab
+indent_size = 4
+

@@ -1,0 +1,14 @@
+apply plugin: "net.ltgt.apt"
+
+dependencies {
+    compile "org.mapstruct:mapstruct-jdk8"
+    annotationProcessor "org.mapstruct:mapstruct-processor"
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs "${project.buildDir}/generated/source/apt/main"
+        }
+    }
+}

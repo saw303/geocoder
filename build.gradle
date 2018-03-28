@@ -1,0 +1,67 @@
+buildscript {
+    ext {
+        springBootVersion = '2.0.0.RELEASE'
+        groovyVersion =  '2.4.15'
+    }
+    repositories {
+        maven { url "https://repo.schaltzentrale.ch/artifactory/gesus/" }
+    }
+    dependencies {
+        classpath 'io.spring.gradle:dependency-management-plugin:1.0.4.RELEASE'
+        classpath "net.ltgt.gradle:gradle-apt-plugin:0.15"
+        classpath "gradle.plugin.com.palantir.gradle.docker:gradle-docker:0.19.2"
+    }
+}
+
+
+
+
+subprojects { subProject ->
+    apply from: "$rootDir/gradle/java.gradle"
+    apply plugin: 'io.spring.dependency-management'
+
+    group = 'ch.silviowangler.addresses'
+    version = '0.0.1'
+
+    repositories {
+        maven { url "https://repo.schaltzentrale.ch/artifactory/gesus/" }
+    }
+
+    if (subProject.name != 'api') {
+        dependencies {
+            compile project(':api')
+        }
+    }
+
+    dependencyManagement {
+        imports {
+            mavenBom("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+        }
+        dependencies {
+
+            dependency 'org.spockframework:spock-core:1.1-groovy-2.4'
+            dependency 'org.spockframework:spock-spring:1.1-groovy-2.4'
+
+            dependency 'org.mapstruct:mapstruct-jdk8:1.2.0.Final'
+            dependency 'org.mapstruct:mapstruct-processor:1.2.0.Final'
+
+            dependency  "org.codehaus.groovy:groovy:${groovyVersion}"
+            dependency  "org.codehaus.groovy:groovy-sql:${groovyVersion}"
+            dependency  "org.codehaus.groovy:groovy-json:${groovyVersion}"
+
+            dependency 'com.google.maps:google-maps-services:0.2.6'
+
+            dependency 'com.google.code.gson:gson:2.8.2'
+
+
+        }
+    }
+}
+
+
+
+
+
+
+
+

@@ -1,0 +1,46 @@
+buildscript {
+    repositories {
+        maven { url "https://repo.schaltzentrale.ch/artifactory/gesus/" }
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.3'
+    }
+}
+apply plugin: 'com.github.johnrengelman.shadow'
+
+dependencies {
+    compile 'com.google.maps:google-maps-services'
+    compile 'com.google.code.gson:gson'
+
+}
+
+ext.moduleName = 'silviowangler.address.client'
+
+compileJava {
+    inputs.property("moduleName", moduleName)
+    doFirst {
+        options.compilerArgs = [
+                '--module-path', classpath.asPath
+        ]
+        classpath = files()
+    }
+}
+
+compileTestJava {
+    inputs.property("moduleName", moduleName)
+    doFirst {
+        options.compilerArgs = [
+                '--module-path', classpath.asPath,
+                '--add-modules', 'junit',
+                '--add-reads', "$moduleName=junit",
+                '--patch-module', "$moduleName=" + files(sourceSets.test.java.srcDirs).asPath,
+        ]
+        classpath = files()
+    }
+}
+
+shadowJar {
+    baseName = 'geocoder'
+    classifier = 'all'
+    version = project.version
+}

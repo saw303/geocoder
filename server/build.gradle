@@ -1,0 +1,232 @@
+import org.hibernate.boot.Metadata
+import org.hibernate.boot.MetadataSources
+import org.hibernate.boot.model.naming.ImplicitNamingStrategy
+import org.hibernate.boot.model.naming.PhysicalNamingStrategy
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder
+import org.hibernate.cfg.AvailableSettings
+import org.hibernate.tool.hbm2ddl.SchemaExport
+import org.hibernate.tool.schema.TargetType
+import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+
+import javax.persistence.Entity
+
+buildscript {
+    repositories {
+        maven { url "https://repo.schaltzentrale.ch/artifactory/gesus/" }
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath 'org.hibernate:hibernate-core:5.2.14.Final'
+        classpath 'org.springframework.data:spring-data-jpa:2.0.1.RELEASE'
+        classpath "org.springframework.boot:spring-boot:${springBootVersion}"
+        classpath 'com.google.maps:google-maps-services:0.2.6'
+
+        if (JavaVersion.current().isJava9Compatible()) {
+            classpath 'javax.xml.bind:jaxb-api:2.3.0'
+        }
+    }
+}
+
+apply plugin: 'org.springframework.boot'
+apply from: "${rootDir}/gradle/mapstruct.gradle"
+apply from: "${rootDir}/gradle/docker.gradle"
+
+docker {
+    name "hub.schaltzentrale.ch/geogeo"
+    tags 'latest'
+    buildArgs([BUILD_VERSION: 'version'])
+    dockerfile file("${projectDir}/src/docker/Dockerfile")
+    files tasks.bootJar.outputs, file("${projectDir}/src/docker/run.sh")
+}
+
+
+dependencies {
+
+    compile 'com.google.maps:google-maps-services'
+
+    compile('org.springframework.boot:spring-boot-starter-data-jpa')
+    compile('org.springframework.boot:spring-boot-starter-web')
+
+    runtime('org.springframework.boot:spring-boot-devtools')
+    runtime('org.mariadb.jdbc:mariadb-java-client')
+    runtime('org.flywaydb:flyway-core')
+
+    if (JavaVersion.current().isJava9Compatible()) {
+        runtime 'javax.xml.bind:jaxb-api:2.3.0'
+    }
+
+    testCompile('org.springframework.boot:spring-boot-starter-test')
+}
+
+sourceSets {
+    main {
+        resources {
+            srcDirs = ['src/main/generated', 'src/main/resources']
+        }
+    }
+}
+
+task cleanGenerated(type: Delete) {
+
+    def target = new File(project.projectDir, 'src/main/generated')
+    if (target.exists()) {
+        delete = target.listFiles()
+    }
+}
+
+
+task ddl(type: HibernateJpaSchemaGenerationTask, dependsOn: [compileJava])
+jar.dependsOn << ddl
+processResources.dependsOn << ddl
+clean.dependsOn << cleanGenerated
+
+class HibernateJpaSchemaGenerationTask extends DefaultTask {
+
+    private Map<String, String> dialects = [
+            //'ORACLE12C'    : 'org.hibernate.dialect.Oracle12cDialect',
+            //'PostgreSQL95' : 'org.hibernate.dialect.PostgreSQL95Dialect',
+            //'H2'           : 'org.hibernate.dialect.H2Dialect',
+            'MYSQL57INNODB': 'org.hibernate.dialect.MySQL57InnoDBDialect'
+
+    ]
+
+    private URLClassLoader loader
+
+    def source = project.sourceSets.main.output.classesDirs[0]
+    def target = new File(project.projectDir, 'src/main/generated')
+
+    @InputFiles
+    def getInputFiles() {
+        this.loader = new URLClassLoader(source.toURI().toURL() as URL[], getClass().getClassLoader())
+
+        def jpaEntities = findJpaEntities(this.loader)
+        if (jpaEntities && !jpaEntities.isEmpty()) {
+            List<File> inputFiles = jpaEntities.collect { c ->
+                project.sourceSets.main.java.files.find { file ->
+                    if (file.name.endsWith(c.simpleName + '.java')) {
+                        file
+                    }
+                }
+            }
+            logger.debug("Input files for this task are ${inputFiles.dump()}")
+            return inputFiles
+        }
+        logger.debug('No input files should be considered')
+        return []
+    }
+
+    @OutputFiles
+    def getDdlFiles() {
+        def outputFiles = dialects.collect { new File(target, "ddl_${it.key.toLowerCase()}_create.sql") }
+        outputFiles.addAll dialects.collect { new File(target, "ddl_${it.key.toLowerCase()}_drop.sql") }
+        logger.debug("Expected output files for this task are ${outputFiles.dump()}")
+        return outputFiles
+    }
+
+    @TaskAction
+    def performSchemaGeneration() {
+
+        if (!target.exists()) {
+            assert target.mkdir()
+        }
+
+        def jpaEntities = findJpaEntities(new URLClassLoader(source.toURI().toURL() as URL[], this.class.classLoader))
+
+        ClassLoader prev = Thread.currentThread().getContextClassLoader()
+
+        try {
+            // Need to set our class loader to the current thread
+            this.loader = new URLClassLoader(source.toURI().toURL() as URL[], this.class.classLoader)
+            Thread.currentThread().setContextClassLoader(this.loader)
+
+            for (Map.Entry<String, String> entry : dialects.entrySet()) {
+
+                String key = entry.key
+                String value = entry.value
+
+                File fileCreate = new File(target, "ddl_${key.toLowerCase()}_create.sql")
+                File fileDrop = new File(target, "ddl_${key.toLowerCase()}_drop.sql")
+
+                logger.debug('Writing to dir {}', target.absolutePath)
+
+                StandardServiceRegistryBuilder regBuilder = new StandardServiceRegistryBuilder()
+                regBuilder.applySetting(AvailableSettings.DIALECT, value)
+
+
+                MetadataSources metadataSources = new MetadataSources(regBuilder.build())
+
+                jpaEntities.each { Class jpaEntity ->
+                    metadataSources.addAnnotatedClass(jpaEntity)
+                }
+
+                ImplicitNamingStrategy implicitNamingStrategy = new SpringImplicitNamingStrategy()
+                PhysicalNamingStrategy physicalNamingStrategy = new SpringPhysicalNamingStrategy()
+
+                Metadata metadata = metadataSources.getMetadataBuilder()
+                        .applyTempClassLoader(this.loader)
+                        .applyIdGenerationTypeInterpreter(new org.hibernate.boot.internal.IdGeneratorInterpreterImpl.LegacyFallbackInterpreter())
+                        .applyImplicitNamingStrategy(implicitNamingStrategy)
+                        .applyPhysicalNamingStrategy(physicalNamingStrategy)
+                        .build()
+
+                SchemaExport export = new SchemaExport()
+                export.setDelimiter(";")
+                export.setFormat(true)
+                export.setOutputFile(fileCreate.path)
+
+                EnumSet targetTypes = EnumSet.of(TargetType.SCRIPT)
+                export.createOnly(targetTypes, metadata)
+
+                export.setOutputFile(fileDrop.path)
+                export.execute(targetTypes, org.hibernate.tool.hbm2ddl.SchemaExport.Action.DROP, metadata)
+            }
+
+            dialects.each { key, value ->
+
+            }
+        }
+        catch (Exception e) {
+            logger.error('Error while schema generation', e)
+        }
+        finally {
+            logger.info("Setting previous class loader context")
+            Thread.currentThread().setContextClassLoader(prev)
+        }
+    }
+
+    private List<Class> findJpaEntities(loader) {
+
+        if (!source.exists()) return []
+
+        def clazzez = []
+
+        source.eachFileRecurse { file ->
+            if (file.name.endsWith('.class') && file.absolutePath.contains('/domain/')) {
+                def classRelPath = file.absolutePath - source.absolutePath
+                clazzez << classRelPath[1..-7].replace(System.properties['file.separator'], '.')
+            }
+        }
+
+        List<Class> jpaEntities = []
+
+        for (String clazz : clazzez) {
+            try {
+                logger.debug("Trying to load class ${clazz}")
+                Class possibleJpaEntity = Class.forName(clazz, true, loader)
+                logger.debug("Class ${clazz} sucessfully loaded")
+
+                if (possibleJpaEntity?.isAnnotationPresent(Entity.class)) {
+                    logger.info("JPA entity detected: ${possibleJpaEntity}")
+                    jpaEntities << possibleJpaEntity
+                } else {
+                    logger.debug("Ignoring class ${possibleJpaEntity.canonicalName} since it has no javax.persistence.Entity annotation present")
+                }
+
+            } catch (Exception e) {
+                logger.error('Error while trying to detect JPA annotated entities', e)
+            }
+        }
+        return jpaEntities
+    }
+}
