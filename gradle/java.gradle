@@ -10,15 +10,14 @@ jar {
     manifest {
         attributes(
                 'Built-By': "Gradle ${gradle.gradleVersion}",
-                'Implementation-Title': "GESUS-${project.name}",
+                'Implementation-Title': "Geocoding-${project.name}",
                 'Implementation-Version': project.version,
-                'Implementation-Vendor': 'Adcubum AG',
-                'Specification-Title': "GESUS-${project.name}",
+                'Implementation-Vendor': 'Silvio Wangler',
+                'Specification-Title': "Geocoding-${project.name}",
                 'Specification-Version': project.version,
-                'Specification-Vendor': 'Adcubum AG'
+                'Specification-Vendor': 'Silvio Wangler'
         )
     }
-    baseName = "gesus-${baseName.replaceAll('/', '-')}"
 }
 
 test {

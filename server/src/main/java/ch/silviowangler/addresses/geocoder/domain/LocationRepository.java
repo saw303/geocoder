@@ -15,5 +15,13 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
 
     Optional<Location> findFirstByLongitudeIsNullAndLatitudeIsNullAndProcessedIsNull();
 
+    long countAllByLongitudeIsNullAndLatitudeIsNullAndProcessedIsNull();
+
+    long countAllByLongitudeIsNotNullAndLatitudeIsNotNullAndProcessedIsNotNull();
+
+    long countAllByLongitudeIsNullAndLatitudeIsNullAndProcessedIsNotNull();
+
     Optional<Location> findByUuid(String uuid);
+
+
 }

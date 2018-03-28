@@ -1,6 +1,6 @@
 # Run instructions
 
-Make sure you run this application on Java 9 (or greater). To verify your Java
+Make sure you run this application on Java 9. To verify your Java
 version open a console and enter `java --version`.
 
 You should get something like this:
@@ -14,6 +14,9 @@ You should get something like this:
 
 Open a console and run the following command:
 
-    java -jar myjar.jar <Google API-KEY>
+    java -jar \
+        --add-modules jdk.incubator.httpclient \
+        <path>/geocoder-0.0.1-all.jar \
+        <Google API KEY>
     
 

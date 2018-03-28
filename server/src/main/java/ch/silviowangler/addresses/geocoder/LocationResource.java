@@ -52,6 +52,20 @@ public class LocationResource {
 		return locationMapper.toLocationVo(location.get());
 	}
 
+	@GetMapping(value = "/stats", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ResponseBody
+	public Stats fetchStats() {
+
+		Stats stats = new Stats();
+
+		stats.setTotalRecords(locationRepository.count());
+		stats.setUnprocessed(locationRepository.countAllByLongitudeIsNullAndLatitudeIsNullAndProcessedIsNull());
+		stats.setProcessed(locationRepository.countAllByLongitudeIsNotNullAndLatitudeIsNotNullAndProcessedIsNotNull());
+		stats.setProcessedNoGeocodes(locationRepository.countAllByLongitudeIsNullAndLatitudeIsNullAndProcessedIsNotNull());
+
+		return stats;
+	}
+
 	@PostMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
 	public void update(@PathVariable("id") UUID uuid, @RequestBody GeocodingResult[] results) {
 
