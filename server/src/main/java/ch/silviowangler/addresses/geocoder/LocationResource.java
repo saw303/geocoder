@@ -43,13 +43,17 @@ public class LocationResource {
 
 	@GetMapping(value = "/next", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 	@ResponseBody
-	public LocationVO next() {
-		final Optional<Location> location = locationRepository.findFirstByLongitudeIsNullAndLatitudeIsNullAndProcessedIsNull();
+	public LocationVO next(@RequestParam(value = "zip", required = false) String zip) {
 
-		if (!location.isPresent()) {
-			throw new NoDataToProcessException();
+
+		final Optional<Location> location;
+
+		if (zip != null) {
+			location = locationRepository.findFirstByLongitudeIsNullAndLatitudeIsNullAndProcessedIsNullAndZip(zip);
+		} else {
+			location = locationRepository.findFirstByLongitudeIsNullAndLatitudeIsNullAndProcessedIsNull();
 		}
-		return locationMapper.toLocationVo(location.get());
+		return locationMapper.toLocationVo(location.orElseThrow(NoDataToProcessException::new));
 	}
 
 	@GetMapping(value = "/stats", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
