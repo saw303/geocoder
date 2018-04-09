@@ -21,7 +21,7 @@ subprojects { subProject ->
     apply plugin: 'io.spring.dependency-management'
 
     group = 'ch.silviowangler.addresses'
-    version = '0.0.1'
+    version = '0.0.2'
 
     repositories {
         maven { url "https://repo.schaltzentrale.ch/artifactory/gesus/" }

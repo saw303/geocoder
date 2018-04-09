@@ -40,11 +40,19 @@ public class Client {
 			baseEndPoint = args[1];
 		}
 
+		String zip = System.getProperty("geocode.zip");
+
 		Gson gson = new GsonBuilder().create();
 		HttpClient client = HttpClient.newHttpClient();
 
+		String uri = "/location/next";
+
+		if (zip != null && zip.length() == 4) {
+			uri += "?zip=" + zip;
+		}
+
 		HttpRequest readData = HttpRequest.newBuilder()
-				.uri(new URI(baseEndPoint + "/location/next"))
+				.uri(new URI(baseEndPoint + uri))
 				.GET()
 				.build();
 
