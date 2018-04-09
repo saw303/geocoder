@@ -1,4 +1,4 @@
-package ch.silviowangler.addresses.geocoder;
+package ch.silviowangler.addresses.geocoder.api;
 
 import java.io.Serializable;
 
@@ -42,5 +42,9 @@ public class Stats implements Serializable {
 
 	public void setTotalRecords(long totalRecords) {
 		this.totalRecords = totalRecords;
+	}
+
+	public double getProgress() {
+		return 100L / this.totalRecords * this.processed;
 	}
 }

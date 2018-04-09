@@ -1,6 +1,8 @@
 package ch.silviowangler.addresses.geocoder;
 
 import ch.silviowangler.addresses.geocoder.api.LocationVO;
+import ch.silviowangler.addresses.geocoder.api.Stats;
+import ch.silviowangler.addresses.geocoder.api.ZipStats;
 import ch.silviowangler.addresses.geocoder.domain.Location;
 import ch.silviowangler.addresses.geocoder.domain.LocationRepository;
 import com.google.gson.Gson;
@@ -68,6 +70,19 @@ public class LocationResource {
 		stats.setProcessedNoGeocodes(locationRepository.countAllByLongitudeIsNullAndLatitudeIsNullAndProcessedIsNotNull());
 
 		return stats;
+	}
+
+	@GetMapping(value = "/stats/{zip}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ResponseBody
+	public ZipStats fetchStats(@PathVariable("zip") String zip) {
+
+		ZipStats zipStats = new ZipStats();
+
+		zipStats.setZip(zip);
+		zipStats.setTotal(locationRepository.countAllByZip(zip));
+		zipStats.setUnprocessed(locationRepository.countAllByLongitudeIsNullAndLatitudeIsNullAndProcessedIsNullAndZip(zip));
+
+		return zipStats;
 	}
 
 	@PostMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
