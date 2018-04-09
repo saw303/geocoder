@@ -81,6 +81,7 @@ public class LocationResource {
 		zipStats.setZip(zip);
 		zipStats.setTotal(locationRepository.countAllByZip(zip));
 		zipStats.setUnprocessed(locationRepository.countAllByLongitudeIsNullAndLatitudeIsNullAndProcessedIsNullAndZip(zip));
+		zipStats.setProcessed(locationRepository.countAllByProcessedIsNotNullAndZip(zip));
 
 		return zipStats;
 	}
