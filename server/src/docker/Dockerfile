@@ -1,7 +1,7 @@
 FROM anapsix/alpine-java:9
 
 VOLUME /tmp
-ADD server-0.0.4.jar app.jar
+ADD server-0.0.5.jar app.jar
 ADD run.sh run.sh
 
 RUN chmod 777 ./run.sh

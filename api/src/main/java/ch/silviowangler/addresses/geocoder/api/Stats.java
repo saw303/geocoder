@@ -45,6 +45,6 @@ public class Stats implements Serializable {
 	}
 
 	public double getProgress() {
-		return 100L / this.totalRecords * this.processed;
+		return Double.valueOf(100d) / this.totalRecords * this.processed;
 	}
 }
