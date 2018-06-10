@@ -18,5 +18,16 @@ Open a console and run the following command:
         --add-modules jdk.incubator.httpclient \
         <path>/geocoder-0.0.1-all.jar \
         <Google API KEY>
+        
+        
+### Run the client on a specific postal code`
+
+You can run the client for a specific postal code. This requires a client version of at least `0.0.6.
+
+    java -jar \
+        -Dgeocode.zip=6979 \
+        --add-modules jdk.incubator.httpclient \
+        <path>/geocoder-0.0.6-all.jar \
+        <Google API KEY>
     
 
