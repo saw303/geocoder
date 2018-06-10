@@ -86,7 +86,10 @@ public class Client {
 			response = client.send(readData, HttpResponse.BodyHandler.asString());
 		}
 
-		if (response.statusCode() != OK) {
+		if (response.statusCode() == 204) {
+			System.out.println("Congratulations! No more streets to process");
+		}
+		else if (response.statusCode() != OK) {
 			System.err.println("Something went wrong " + response.statusCode());
 		}
 	}
