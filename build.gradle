@@ -13,15 +13,12 @@ buildscript {
     }
 }
 
-
-
-
 subprojects { subProject ->
     apply from: "$rootDir/gradle/java.gradle"
     apply plugin: 'io.spring.dependency-management'
 
     group = 'ch.silviowangler.addresses'
-    version = '0.0.6'
+    version = '0.0.7'
 
     repositories {
         maven { url "https://repo.schaltzentrale.ch/artifactory/gesus/" }
