@@ -80,8 +80,7 @@ public class Client {
 			if (storeResponse.statusCode() == OK) {
 				System.out.println("Address successfully updated");
 			} else {
-				System.err.println(String.format("Could not update address (status %s, address: %s)", response.statusCode(), location));
-				System.exit(-4);
+				System.err.println(String.format("Could not update address (status %s, address: %s)", storeResponse.statusCode(), location));
 			}
 			response = client.send(readData, HttpResponse.BodyHandler.asString());
 		}
