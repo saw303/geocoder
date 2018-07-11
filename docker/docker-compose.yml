@@ -12,7 +12,7 @@ services:
       - ${GEO_HOME}/geo:/var/log/geo
 
   geodb:
-    image: yobasystems/alpine-mariadb
+    image: mariadb:10.3.7
     container_name: geo.db
     environment:
       MYSQL_ROOT_PASSWORD: geo
@@ -23,3 +23,6 @@ services:
         - "127.0.0.1:3306:3306"
     volumes:
       - ${GEO_HOME}/mariadb:/var/lib/mysql
+    healthcheck:
+      test: "mysqladmin ping -u root -p$${MYSQL_ROOT_PASSWORD}"
+      start_period: 10s

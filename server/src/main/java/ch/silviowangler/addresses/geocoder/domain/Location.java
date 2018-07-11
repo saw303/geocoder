@@ -1,9 +1,6 @@
 package ch.silviowangler.addresses.geocoder.domain;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
+import javax.persistence.*;
 import java.time.Instant;
 
 /**
@@ -12,6 +9,9 @@ import java.time.Instant;
 @Entity
 @Table(name = "geo_location", uniqueConstraints={
         @UniqueConstraint(columnNames = {"street", "housenumber", "zip", "city", "country"})
+}, indexes = {
+		@Index(name="IDX_ZIP_LONG_LAT_PROC", columnList = "longitude,latitude,processed,zip"),
+		@Index(name="IDX_LONG_LAT_PROC", columnList = "longitude,latitude,processed")
 })
 public class Location extends BaseEntity {
 

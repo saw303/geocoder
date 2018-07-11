@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        springBootVersion = '2.0.1.RELEASE'
+        springBootVersion = '2.0.3.RELEASE'
         groovyVersion =  '2.4.15'
     }
     repositories {
@@ -18,7 +18,7 @@ subprojects { subProject ->
     apply plugin: 'io.spring.dependency-management'
 
     group = 'ch.silviowangler.addresses'
-    version = '0.0.7'
+    version = '0.0.8'
 
     repositories {
         maven { url "https://repo.schaltzentrale.ch/artifactory/gesus/" }
